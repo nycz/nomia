@@ -1,0 +1,127 @@
+{
+    "title": {
+        "source":  "xmllist",
+        "type": "str",
+        "id": "series_title"
+    },
+    "episodes_progress": {
+        "source":  "xmllist",
+        "type": "int",
+        "id": "my_watched_episodes"
+    },
+    "episodes_total": {
+        "source":  "xmllist",
+        "type": "int",
+        "id": "series_episodes"
+    },
+    "status": {
+        "source":  "xmllist",
+        "type": "mal-watch-status",
+        "id": "my_status"
+    },
+    "rating": {
+        "source": "htmlscraping",
+        "type": "str",
+        "id": ""
+    },
+    "score_overall": {
+        "source":  "xmllist",
+        "type": "int",
+        "id": "my_score"
+    },
+    "score_characters": {
+        "source": "manual",
+        "type": "int",
+        "id": ""
+    },
+    "score_story": {
+        "source": "manual",
+        "type": "int",
+        "id": ""
+    },
+    "score_sound": {
+        "source": "manual",
+        "type": "int",
+        "id": ""
+    },
+    "score_art": {
+        "source": "manual",
+        "type": "int",
+        "id": ""
+    },
+    "score_enjoyment": {
+        "source": "manual",
+        "type": "int",
+        "id": ""
+    },
+    "type": {
+        "source":  "xmllist",
+        "type": "mal-type",
+        "id": "series_type"
+    },
+    "tags": {
+        "source": "manual",
+        "type": "list",
+        "id": ""
+    },
+    "available_locally": {
+        "source": "manual",
+        "type": "bool",
+        "id": ""
+    },
+    "space": {
+        "source": "manual",
+        "type": "int",
+        "id": ""
+    },
+    "space_per_episode": {
+        "source": "manual",
+        "type": "int",
+        "id": ""
+    },
+    "episode_length": {
+        "source": "htmlscraping",
+        "type": "int",
+        "id": ""
+    },
+    "airing_started": {
+        "source":  "xmllist",
+        "type": "date",
+        "id": "series_start"
+    },
+    "airing_finished": {
+        "source":  "xmllist",
+        "type": "date",
+        "id": "series_end"
+    },
+    "watching_started": {
+        "source":  "xmllist",
+        "type": "date",
+        "id": "my_start_date"
+    },
+    "watching_finished": {
+        "source":  "xmllist",
+        "type": "date",
+        "id": "my_finish_date"
+    },
+    "description": {
+        "source": "manual",
+        "type": "str",
+        "id": ""
+    },
+    "comment": {
+        "source": "manual",
+        "type": "str",
+        "id": ""
+    },
+    "studio": {
+        "source": "htmlscraping",
+        "type": "str",
+        "id": ""
+    },
+    "MAL_id": {
+        "source":  "xmllist",
+        "type": "int",
+        "id": "series_animedb_id"
+    }
+}
