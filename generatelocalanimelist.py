@@ -134,8 +134,14 @@ def generate_list_of_anime_urls(entries):
         n += 1
 
 
-
-
+def get_anime_images(rootdir):
+    from urllib.request import urlretrieve
+    outdir = local_path('imgcache')
+    rx = r'<a href="http://myanimelist.net/anime/\d+/.+?/pics">\s*<img src="(http://.+?)" alt'
+    for fname in os.listdir(rootdir):
+        rawdata = read_file(os.path.join(rootdir, fname))
+        imgurl = re.search(rx, rawdata).group(1)
+        urlretrieve(imgurl, os.path.join(outdir, fname + '.jpg'))
 
 
 
