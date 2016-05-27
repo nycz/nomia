@@ -68,12 +68,9 @@ class IndexFrame(QtGui.QWidget):
             (t.sort,                    self.sort_entries),
             (t.open_,                   self.open_entry),
             (t.edit,                    self.edit_entry),
-            (t.new_entry,               self.new_entry),
+            #(t.new_entry,               self.new_entry),
             (t.input_term.scroll_index, self.webview.event),
             (t.list_,                   self.list_),
-            (t.count_length,            self.count_length),
-            (t.external_edit,           self.external_run_entry),
-            (t.open_meta,               self.open_meta),
             (t.quit,                    self.quit.emit),
             (t.show_readme,             self.show_popup.emit),
         )
@@ -81,6 +78,7 @@ class IndexFrame(QtGui.QWidget):
             signal.connect(slot)
 
     def update_settings(self, settings):
+        self.htmltemplates = load_html_templates()
         self.settings = settings
         self.terminal.update_settings(settings)
         # Update hotkeys
@@ -106,7 +104,7 @@ class IndexFrame(QtGui.QWidget):
         Is also the method that generates the entrylist the first time.
         So don't look for a init_everything method/function or anything, kay?
         """
-        self.attributedata, self.entries = index_stories(self.settings['path'])
+        self.attributedata, self.entries = index_entries(self.settings['path'])
         self.visible_entries = self.regenerate_visible_entries()
         print('reloaded')
         self.refresh_view(keep_position=True)
@@ -605,20 +603,31 @@ def generate_html_body(visible_entries, tagstemplate, entrytemplate, entrylength
     Return html generated from the visible entries.
     """
     def format_tags(tags):
+        specialtagrx = r'(status|rating|studio|type): '
         return '<wbr>'.join(
             tagstemplate.format(tag=t.replace(' ', '&nbsp;').replace('-', '&#8209;'),
                                 color=tagcolors.get(t, deftagcolor))
-            for t in sorted(tags))
+            for t in sorted(tags) if re.match(specialtagrx, t) is None)
     def format_desc(desc):
         return desc if desc else '<span class="empty_desc">[no desc]</span>'
-    entrytemplate = entrytemplate.format(lengthformatstr=entrylengthtemplate)
-    entries = (entrytemplate.format(title=entry.title, id=n,
-                                    tags=format_tags(entry.tags),
-                                    desc=format_desc(entry.description),
-                                    wordcount=entry.wordcount,
-                                    backstorywordcount=entry.backstorywordcount,
-                                    backstorypages=entry.backstorypages)
-               for n,entry in enumerate(visible_entries))
+    def get_tag(tags, prefix):
+        return next(x.split(' ', 1)[1] for x in tags if x.startswith(prefix))
+    def get_image(malindex):
+        return join(local_path('imgcache'), str(malindex) + '.jpg')
+    entries = (entrytemplate.format(
+            id=n,
+            title=entry.title,
+            tags=format_tags(entry.tags),
+            desc=format_desc(entry.description),
+            statustext=get_tag(entry.tags, 'status: '),
+            statusclass=get_tag(entry.tags, 'status: ').replace(' ', ''),
+            rating=get_tag(entry.tags, 'rating: '),
+            score=entry.score_overall if entry.score_overall > 0 else '-',
+            type=get_tag(entry.tags, 'type: '),
+            progress=entry.episodes_progress,
+            image=get_image(entry.MAL_id),
+            maxeps=entry.episodes_total)
+        for n,entry in enumerate(visible_entries))
     return '<hr />'.join(entries)
 
 
@@ -666,9 +675,8 @@ class Terminal(GenericTerminal):
             's': (self.sort, 'Sort'),
             'q': (self.quit, 'Quit'),
             '?': (self.cmd_help, 'List commands or help for [command]'),
-            'x': (self.external_edit, 'Open in external program/editor'),
             'l': (self.list_, 'List'),
-            'n': (self.new_entry, 'New entry'),
+            #'n': (self.new_entry, 'New entry'),
             'h': (self.cmd_show_readme, 'Show readme')
         }
 

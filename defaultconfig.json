@@ -1,0 +1,35 @@
+{
+  "title": "",
+  "hotkeys": {
+    "home": "F12",
+    "reload": "Ctrl+R",
+    "save": "Ctrl+S",
+    "next tab": "Ctrl+PgDown",
+    "prev tab": "Ctrl+PgUp",
+    "toggle terminal": "Escape",
+    "toggle fullscreen": "Ctrl+Space",
+    "zoom in": "Ctrl++",
+    "zoom out": "Ctrl+-",
+    "reset zoom": "Ctrl+0"
+  },
+  "path": "",
+  "editor": "",
+  "animate terminal output": true,
+  "terminal animation interval": 5,
+  "tag colors": {},
+  "tag macros": {},
+  "formatting converters": [],
+  "chapter strings": [],
+  "backstory viewer formats": {
+    "^#.+": [18, "bold"],
+    "^=.+": [16, "bold"],
+    "^\\+.+": [14, "bold"],
+    "\\*.+?\\*": ["bold"],
+    "_.+?_": ["italic"],
+    "~.+?~": ["strikethrough"]
+  },
+  "backstory default pages": {
+    "about.txt": "About"
+  },
+  "entry length template": "({wordcount:,}) – [{backstorywordcount:,}:{backstorypages:,}]"
+}
