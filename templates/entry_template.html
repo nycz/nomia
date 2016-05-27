@@ -1,20 +1,48 @@
-<div class="list_entry {statusclass}">
-    <div class="leftest">
-        <div><img src="file:///{image}" class="cover"/></div>
-        <div class="id">{id}</div>
-    </div>
-    <div class="left">
-        <!-- <div class="id">{id}</div> -->
-        <div>
-            <span class="title">{title}</span>
+<div class="entry_container {statusclass}">
+    <div class="list_entry">
+        <div class="leftest">
+            <div><img src="file:///{image}" class="cover"/></div>
+            <div class="id">{id}</div>
         </div>
-        <div class="description">{desc}</div>
-        <div class="tags">{tags}</div>
+        <div class="left">
+            <!-- <div class="id">{id}</div> -->
+            <div>
+                <span class="title">{title}</span>
+            </div>
+            <div class="description">{desc}</div>
+            <div class="tags">{tags}</div>
+        </div>
+        <!-- <div class="right"> -->
+            <div class="semitag score">{score}<!--  <div class="maxscore">/ 10</div> --></div>
+            <div class="semitag epcount">{progress}<span class="faded">&nbsp;/ {maxeps}</span></div>
+            <div class="semitag type">{type}</div>
+            <div class="semitag rating">{rating}</div>
+        <!-- </div> -->
     </div>
-    <div class="right">
-        <div class="semitag score">{score}<!--  <div class="maxscore">/ 10</div> --></div>
-        <div class="semitag epcount">{progress}<span class="faded"> / {maxeps}</span></div>
-        <div class="semitag type">{type}</div>
-        <div class="semitag rating">{rating}</div>
+    <div class="entry_info" id="entry_info_{id}">
+        <div class="miscinfocontainer">
+            <div class="miscinfo">
+                <span class="title">Studio:</span> {studio}<br>
+                <span class="title">Episode length:</span> {eplength}<br>
+                <span class="title">Space on disk:</span> {epspace} per ep, {totalspace} total<br>
+                <span class="title">Aired:</span> {airingstart} - {airingend}<br>
+                <span class="title">Watched:</span> {watchingstart} - {watchingend}
+            </div>
+            <div class="scorenames">
+                Characters:<br>
+                Story:<br>
+                Sound:<br>
+                Art:<br>
+                Enjoyment:
+            </div>
+            <div class="scorenums">
+                {charscore}<br>
+                {storyscore}<br>
+                {soundscore}<br>
+                {artscore}<br>
+                {funscore}
+            </div>
+        </div>
+        <div class="comment">{comment}</div>
     </div>
 </div>

@@ -8,7 +8,7 @@ import re
 import subprocess
 
 from PyQt4 import QtGui, QtWebKit
-from PyQt4.QtCore import pyqtSignal, Qt, QEvent
+from PyQt4.QtCore import pyqtSignal, Qt, QEvent, QUrl
 
 from libsyntyche import taggedlist
 from libsyntyche.taggedlist import parse_text, parse_tags, filter_text, filter_number, filter_tags
@@ -23,12 +23,13 @@ class IndexFrame(QtGui.QWidget):
     show_popup = pyqtSignal(str, str, str, str)
     quit = pyqtSignal(str)
 
-    def __init__(self, parent, dry_run):
+    def __init__(self, parent, dry_run, configdir):
         super().__init__(parent)
         # Layout and shit
         layout = QtGui.QVBoxLayout(self)
         kill_theming(layout)
         self.webview = QtWebKit.QWebView(self)
+        self.webview.settings().setUserStyleSheetUrl(QUrl('file:///'+join(configdir, '.index.css')))
         self.webview.setDisabled(True)
         layout.addWidget(self.webview, stretch=1)
         self.terminal = Terminal(self, self.get_tags)
@@ -66,13 +67,14 @@ class IndexFrame(QtGui.QWidget):
         connects = (
             (t.filter_,                 self.filter_entries),
             (t.sort,                    self.sort_entries),
-            (t.open_,                   self.open_entry),
+            (t.toggle,                  self.toggle_entry_info),
             (t.edit,                    self.edit_entry),
             #(t.new_entry,               self.new_entry),
             (t.input_term.scroll_index, self.webview.event),
             (t.list_,                   self.list_),
             (t.quit,                    self.quit.emit),
             (t.show_readme,             self.show_popup.emit),
+            (t.test,                    self.dev_command),
         )
         for signal, slot in connects:
             signal.connect(slot)
@@ -122,10 +124,25 @@ class IndexFrame(QtGui.QWidget):
                                   self.settings['entry length template'],
                                   self.settings['tag colors'],
                                   self.defaulttagcolor)
-        self.webview.setHtml(self.htmltemplates.index_page.format(body=body, css=self.css))
+        self.webview.setHtml(self.htmltemplates.index_page.format(body=body))
+        #self.set_css(self.css)
         if keep_position:
             frame.setScrollBarValue(Qt.Vertical, pos)
         print('refreshed')
+
+    def dev_command(self, arg):
+        #element = self.webview.page().mainFrame().findFirstElement('style')
+        #print(element.toPlainText()[:100])
+        #element.setPlainText(read_file('test.css'))
+        self.webview.settings().setUserStyleSheetUrl(QUrl('file:///'+local_path('test.css')))
+
+
+        #print(self.webview.settings())
+        #self.webview.settings().setUserStyleSheetUrl(QUrl('file:///'+local_path('test.css')))
+
+    #def set_css(self, css):
+    #    element = self.webview.page().mainFrame().findFirstElement('style')
+    #    element.setPlainText(css)
 
     def get_tags(self):
         """
@@ -371,6 +388,25 @@ class IndexFrame(QtGui.QWidget):
         else:
             self.error('Invalid edit command')
 
+    def toggle_entry_info(self, arg):
+        """
+        Main show entry method, called by the terminal. This toggles the
+        box with extra info for the selected entry.
+
+        arg should be the index of the entry to be viewed.
+        """
+        if arg not in range(len(self.visible_entries)):
+            self.error('Index out of range')
+            return
+        element = self.webview.page().mainFrame().findFirstElement('div#entry_info_{}'.format(arg))
+        display = element.styleProperty('display', QtWebKit.QWebElement.ComputedStyle)
+        if display == 'none':
+            newdisplay = '-webkit-flex'
+        else:
+            newdisplay = 'none'
+        element.setStyleProperty('display', newdisplay)
+        #print(element.styleProperty('display', QtWebKit.QWebElement.ComputedStyle))
+
 
     def open_entry(self, arg):
         """
@@ -614,6 +650,8 @@ def generate_html_body(visible_entries, tagstemplate, entrytemplate, entrylength
         return next(x.split(' ', 1)[1] for x in tags if x.startswith(prefix))
     def get_image(malindex):
         return join(local_path('imgcache'), str(malindex) + '.jpg')
+    def get_score(num):
+        return num if num > 0 else '-'
     entries = (entrytemplate.format(
             id=n,
             title=entry.title,
@@ -622,11 +660,26 @@ def generate_html_body(visible_entries, tagstemplate, entrytemplate, entrylength
             statustext=get_tag(entry.tags, 'status: '),
             statusclass=get_tag(entry.tags, 'status: ').replace(' ', ''),
             rating=get_tag(entry.tags, 'rating: '),
-            score=entry.score_overall if entry.score_overall > 0 else '-',
+            score=get_score(entry.score_overall),
             type=get_tag(entry.tags, 'type: '),
             progress=entry.episodes_progress,
             image=get_image(entry.MAL_id),
-            maxeps=entry.episodes_total)
+            maxeps=entry.episodes_total,
+            # Extended
+            studio=get_tag(entry.tags, 'studio'),
+            eplength=entry.episode_length,
+            totalspace=entry.space,
+            epspace=entry.space_per_episode,
+            airingstart=entry.airing_started,
+            airingend=entry.airing_finished,
+            watchingstart=entry.watching_started,
+            watchingend=entry.watching_finished,
+            charscore=get_score(entry.score_characters),
+            storyscore=get_score(entry.score_story),
+            soundscore=get_score(entry.score_sound),
+            artscore=get_score(entry.score_art),
+            funscore=get_score(entry.score_enjoyment),
+            comment=entry.comment)
         for n,entry in enumerate(visible_entries))
     return '<hr />'.join(entries)
 
@@ -655,12 +708,13 @@ class TerminalInputBox(GenericTerminalInputBox):
 class Terminal(GenericTerminal):
     filter_ = pyqtSignal(str)
     sort = pyqtSignal(str)
-    open_ = pyqtSignal(int)
+    toggle = pyqtSignal(int)
     quit = pyqtSignal(str)
     edit = pyqtSignal(str)
     list_ = pyqtSignal(str)
     new_entry = pyqtSignal(str)
     show_readme = pyqtSignal(str, str, str, str)
+    test = pyqtSignal(str)
 
     def __init__(self, parent, get_tags):
         super().__init__(parent, TerminalInputBox, GenericTerminalOutputBox)
@@ -677,7 +731,8 @@ class Terminal(GenericTerminal):
             '?': (self.cmd_help, 'List commands or help for [command]'),
             'l': (self.list_, 'List'),
             #'n': (self.new_entry, 'New entry'),
-            'h': (self.cmd_show_readme, 'Show readme')
+            'h': (self.cmd_show_readme, 'Show readme'),
+            't': (self.test, 'DEVCOMMAND'),
         }
 
     def cmd_show_readme(self, arg):
@@ -695,7 +750,7 @@ class Terminal(GenericTerminal):
 
     def command_parsing_injection(self, arg):
         if arg.isdigit():
-            self.open_.emit(int(arg))
+            self.toggle.emit(int(arg))
             return True
 
     def autocomplete(self, reverse):

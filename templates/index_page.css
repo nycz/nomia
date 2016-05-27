@@ -2,13 +2,10 @@ body {{
     margin: 0px;
     background-color: {index background};
     font-family: "{index font}";
-}}
-div.list_entry_expanded {{
-    display: none;
-}}
-div {{
     color: #bbb;
     font-size: 13px;
+}}
+div {{
 }}
 .id {{
     color: {index entry id color};
@@ -57,32 +54,45 @@ span.faded {{
 div.list_entry {{
     display: -webkit-flex;
     margin: 0px;
-    border-left: 8px solid;
+    /*border-left: 8px solid;*/
     -webkit-justify-content: space-between;
 }}
 .leftest {{
+    /*background-color: rgba(255,0,0,0.1);*/
     display: -webkit-flex;
+    -webkit-flex: none;
     -webkit-align-items: center;
     margin-right: 15px
     }}
 
 .left {{
+    /*background-color: rgba(0,255,0,0.1);*/
     margin: 10px 0px;
     -webkit-flex: 1;
     display: -webkit-flex;
+    min-width: 35em;
     -webkit-align-items: left;
     -webkit-flex-direction: column;
     -webkit-justify-content: space-around;
 }}
 .right {{
+    /*background-color: rgba(0,0,255,0.1);*/
+    /*-webkit-flex: 1;*/
     display: -webkit-flex;
     -webkit-align-items: center;
 }}
 .semitag {{
+    /*border: 1px solid black;*/
+    display: -webkit-flex;
+    -webkit-flex: initial;
+    /*background-color: rgba(255,0,255,0.1);*/
+    min-width: 2em;
     width: 10em;
+    -webkit-align-items: center;
+    -webkit-justify-content: center;
     text-align: center;
-    margin-left: 40px;
-    margin-right: 30px;
+    /*margin-left: 40px;*/
+    /*margin-right: 30px;*/
 }}
 .cover {{
     margin: 6px;
@@ -92,22 +102,78 @@ div.list_entry {{
     margin-left: 10px;
 }}
 
-div.list_entry.dropped {{
+div.entry_container {{
+    border-left: 8px solid;
+    margin: 0px;
+    padding-bottom: 0px;
+    /*background-color: rgba(255,0,0,0.1);*/
+    overflow: hidden;
+}}
+
+div.entry_container.dropped {{
     border-color: #a12f31;
 }}
-div.list_entry.onhold {{
+div.entry_container.onhold {{
     border-color: #f1c83e;
 }}
-div.list_entry.watching {{
+div.entry_container.watching {{
     border-color: #2db039;
 }}
-div.list_entry.completed {{
+div.entry_container.completed {{
     border-color: #26448f;
 }}
-div.list_entry.plantowatch {{
+div.entry_container.plantowatch {{
     border-color: #666;
 }}
-/* END STATUS */
+
+
+/* EXTENDED INFO */
+
+.entry_info {{
+    display: none;
+    /*display: -webkit-flex;*/
+    -webkit-justify-content: flex-start;
+    -webkit-align-items: center;
+    /*-webkit-justify-content: left;*/
+    background-color: rgba(0,0,0,0.3);
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    padding: 10px;
+}}
+.miscinfocontainer {{
+    line-height: 1.4em;
+    display: -webkit-flex;
+    /*-webkit-flex-direction: column;*/
+    -webkit-align-items: left;
+    -webkit-justify-content: left;
+}}
+.miscinfo {{
+    /*background-color: rgba(0,255,255,0.1);*/
+    min-width: 20em;
+}}
+.miscinfo .title {{
+    font-weight: bold;
+    color: #bbb;
+    font-size: 13px;
+}}
+.scorenames {{
+    font-weight: bold;
+    margin-left: 3em;
+    margin-right: 1em;
+}}
+.scorenums {{
+    margin-right: 3em;
+}}
+.comment {{
+    /*-webkit-flex: initial;*/
+    width: 70em;
+    /*background-color: rgba(255,255,0,0.1);*/
+    min-width: 10em;
+}}
+/* MISC SHIT */
+
 hr {{
     background-color: {index horizontal line color};
     border: none;
@@ -130,35 +196,3 @@ hr {{
     background-color: {index background};
 }}
 
-
-
-
-.flex-container {{
-    padding: 0;
-    margin: 0;
-    list-style: none;
-    /*display: -webkit-box;*/
-    /*display: -moz-box;*/
-    /*display: -ms-flexbox;*/
-    display: -webkit-flex;
-    /*display: flex;*/
-    /*-webkit-flex-flow: row wrap;*/
-    /*justify-content: flex-end;*/
-}}
-.flex-item {{
-    background: tomato;
-    padding: 5px;
-    width: 200px;
-    height: 150px;
-    margin-top: 10px;
-    line-height: 150px;
-    color: white;
-    font-weight: bold;
-    font-size: 3em;
-    text-align: center;
-}}
-#last {{
-    -webkit-flex: 1;
-    background: blue;
-    /*min-width: 60px*/
-}}
