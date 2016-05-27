@@ -27,7 +27,7 @@ def extract_html_data(rootdir):
     * Episode length
     * Rating
     """
-    ratingrx = r'<span.+?>Rating:</span>\s*(.+?)\s*</div>'
+    ratingrx = r'<span.+?>Rating:</span>\s*(\S+?)\s+-\s+.+?\s*</div>'
     studiorx = r'<span.+?>Studios:</span>\s*<a href="/anime/producer/\d+/.+?" title=".+?">(.+?)</a>'
     nostudiorx = r'<span.+?>Studios:</span>\s*None found, <a href=".+?">add some</a>'
     eplengthrx = r'<span.+?>Duration:</span>\s*((?P<hours>\d+)\s+hr\.\s*)?((?P<mins>\d+)\s+min\.\s*)?(per\s+ep\.)?\s*</div>'
@@ -92,8 +92,8 @@ def parse_rawvalue(rawvalue, datatype):
         return {
             '1': 'TV',
             '2': 'OVA',
-            '3': 'Movie',
-            '4': 'Specials',
+            '3': 'movie',
+            '4': 'special',
             '5': 'ONA'
         }[rawvalue]
 
