@@ -466,9 +466,6 @@ def load_html_templates():
 
 # ===== Filter functions ======================================
 
-def filter_bool(attribute, payload, entries):
-    pass
-
 def filter_date(attribute, payload, entries):
     pass
 
@@ -476,12 +473,6 @@ def filter_diskspace(attribute, payload, entries):
     pass
 
 def filter_duration(attribute, payload, entries):
-    pass
-
-def filter_mediatype(attribute, payload, entries):
-    pass
-
-def filter_watchstatus(attribute, payload, entries):
     pass
 
 # ===== Parse functions =======================================
@@ -501,10 +492,7 @@ def parse_duration(rawtext):
 def parse_int(rawtext):
     return rawtext
 
-def parse_mediatype(rawtext):
-    return rawtext
-
-def parse_watchstatus(rawtext):
+def parse_score(rawtext):
     return rawtext
 
 
@@ -529,10 +517,6 @@ def index_entries(fname):
             'filter': filter_date,
             'parser': parse_date
         },
-        'available_locally': {
-            'filter': filter_bool,
-            'parser': parse_bool
-        },
         'comment': {
             'filter': filter_text,
             'parser': parse_text
@@ -553,33 +537,29 @@ def index_entries(fname):
             'filter': filter_number,
             'parser': parse_int
         },
-        'rating': {
-            'filter': filter_number,
-            'parser': parse_int
-        },
         'score_art': {
             'filter': filter_number,
-            'parser': parse_int
+            'parser': parse_score
         },
         'score_characters': {
             'filter': filter_number,
-            'parser': parse_int
+            'parser': parse_score
         },
         'score_enjoyment': {
             'filter': filter_number,
-            'parser': parse_int
+            'parser': parse_score
         },
         'score_overall': {
             'filter': filter_number,
-            'parser': parse_int
+            'parser': parse_score
         },
         'score_sound': {
             'filter': filter_number,
-            'parser': parse_int
+            'parser': parse_score
         },
         'score_story': {
             'filter': filter_number,
-            'parser': parse_int
+            'parser': parse_score
         },
         'space': {
             'filter': filter_diskspace,
@@ -589,14 +569,6 @@ def index_entries(fname):
             'filter': filter_diskspace,
             'parser': parse_diskspace
         },
-        'status': {
-            'filter': filter_watchstatus,
-            'parser': parse_watchstatus
-        },
-        'studio': {
-            'filter': filter_text,
-            'parser': parse_text
-        },
         'tags': {
             'filter': filter_tags,
             'parser': parse_tags
@@ -604,10 +576,6 @@ def index_entries(fname):
         'title': {
             'filter': filter_text,
             'parser': parse_text
-        },
-        'type': {
-            'filter': filter_mediatype,
-            'parser': parse_mediatype
         },
         'watching_finished': {
             'filter': filter_date,
@@ -619,6 +587,14 @@ def index_entries(fname):
         },
     }
     entries = read_json(fname)
+    for entry in entries:
+        for k in ['rating', 'status', 'studio', 'type']:
+            entry['tags'].append('{}: {}'.format(k, entry[k]))
+            del entry[k]
+        if entry['available_locally']:
+            entry['tags'].append('local')
+        del entry['available_locally']
+
     Entry = namedtuple('Entry', ('index',) + tuple(sorted(attributes.keys())))
     #print(next(reversed(list(zip(*sorted(entries[0].items()))))))
     entrylist = (Entry(n, *[v for k,v in sorted(argdict.items())]) for n, argdict in enumerate(entries))
