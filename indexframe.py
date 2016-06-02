@@ -134,7 +134,14 @@ class IndexFrame(QtGui.QWidget):
         #element = self.webview.page().mainFrame().findFirstElement('style')
         #print(element.toPlainText()[:100])
         #element.setPlainText(read_file('test.css'))
-        self.webview.settings().setUserStyleSheetUrl(QUrl('file:///'+local_path('test.css')))
+        elements = self.webview.page().mainFrame().findAllElements('div.entry_container')
+        for e in elements:
+            x = e.styleProperty('display', QtWebKit.QWebElement.ComputedStyle)
+            print(x)
+            #x = e.styleProperty('display', QtWebKit.QWebElement.ComputedStyle)
+            e.setStyleProperty('display', 'none')
+
+        #self.webview.settings().setUserStyleSheetUrl(QUrl('file:///'+local_path('test.css')))
 
 
         #print(self.webview.settings())
@@ -216,13 +223,16 @@ class IndexFrame(QtGui.QWidget):
         nothing in that particular category (eg. empty description).
         If arg is a category, prompt with the active filter (if any).
         """
-        filters = {'n': 'title',
-                   'd': 'description',
-                   't': 'tags',
-                   'c': 'wordcount',
-                   'b': 'backstorywordcount',
-                   'p': 'backstorypages'}
-        filterchars = ''.join(filters)
+
+
+
+        #filters = {'n': 'title',
+        #           'd': 'description',
+        #           't': 'tags',
+        #           'c': 'wordcount',
+        #           'b': 'backstorywordcount',
+        #           'p': 'backstorypages'}
+        #filterchars = ''.join(filters)
         # Print active filters
         if not arg:
             active_filters = ['{}: {}'.format(cmd, payload)

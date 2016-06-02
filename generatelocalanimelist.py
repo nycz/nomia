@@ -51,7 +51,7 @@ def extract_html_data(rootdir):
         except AttributeError:
             print('ep length', fname)
             return
-        eplength = int(raweplength['hours']) + int(raweplength['mins'])
+        eplength = int(raweplength['hours'])*3600 + int(raweplength['mins'])*60
         data[fname] = {
             'rating': unescape(rating),
             'studio': unescape(studio),
@@ -100,7 +100,8 @@ def parse_rawvalue(rawvalue, datatype):
 
 
 def parse_animelist_xml(root, htmldata, template):
-    entries = []
+    entries = {}
+    i = 0
     for xmlentry in root:
         if xmlentry.tag != 'anime':
             continue
@@ -115,7 +116,8 @@ def parse_animelist_xml(root, htmldata, template):
             elif data['source'] == 'manual':
                 value = generate_default_value(data['type'])
             entry[tag] = value
-        entries.append(entry)
+        entries[i] = entry
+        i += 1
     return entries
 
 
@@ -155,13 +157,15 @@ def main():
 
 if __name__ == '__main__':
     main()
+    #get_anime_images(local_path('malanimetempcache'))
     #html = extract_html_data(local_path('malanimetempcache'))
-    #l = [x['studio'] for x in html.values()]
+    #l = [x['rating'] for x in html.values()]
+    ##l = [x['studio'] for x in html.values()]
     #from collections import Counter
     #from operator import itemgetter
     #c = Counter(l)
     #cl = sorted(((x, c[x]) for x in set(l)), key=itemgetter(1))
 
-    #print(*cl, sep='\n')
+    #print(*['{}: {}'.format(x,y) for x,y in cl], sep='\n')
     ##print(*s, sep='\n')
     #print('unique/total: {}/{}'.format(len(cl), len(html)))

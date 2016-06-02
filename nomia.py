@@ -14,7 +14,7 @@ from PyQt4.QtCore import Qt
 
 from libsyntyche.common import read_json, read_file, write_json, write_file, kill_theming, local_path, make_sure_config_exists
 from libsyntyche.fileviewer import FileViewer
-from indexframe import IndexFrame
+from indexframemvc import IndexFrame
 
 
 class MainWindow(QtGui.QWidget):
@@ -48,9 +48,10 @@ class MainWindow(QtGui.QWidget):
         self.index_css_template = read_file(local_path(join('templates','index_page.css')))
         self.settings, self.style = {}, {}
         self.reload_settings()
+        self.index_viewer.populate_view()
 
         # Misc
-        self.connect_signals()
+        #self.connect_signals()
         self.show()
 
     def closeEvent(self, event):
@@ -107,7 +108,7 @@ class MainWindow(QtGui.QWidget):
             indexcss = self.index_css_template.format(**style)
         except KeyError as e:
             print(e)
-            self.index_viewer.error('Invalid style config: key missing')
+            #self.index_viewer.error('Invalid style config: key missing')
             return
         self.setStyleSheet(css)
         self.index_viewer.defaulttagcolor = style['index entry tag default background']
@@ -119,17 +120,17 @@ class MainWindow(QtGui.QWidget):
 
     # ===== Input overrides ===========================
     def wheelEvent(self, ev):
-        self.index_viewer.webview.wheelEvent(ev)
+        self.index_viewer.view.wheelEvent(ev)
 
     def keyPressEvent(self, ev):
         if self.stack.currentWidget() == self.index_viewer and ev.key() in (Qt.Key_PageUp, Qt.Key_PageDown):
-            self.index_viewer.webview.keyPressEvent(ev)
+            self.index_viewer.view.keyPressEvent(ev)
         else:
             return super().keyPressEvent(ev)
 
     def keyReleaseEvent(self, ev):
         if self.stack.currentWidget() == self.index_viewer and ev.key() in (Qt.Key_PageUp, Qt.Key_PageDown):
-            self.index_viewer.webview.keyReleaseEvent(ev)
+            self.index_viewer.view.keyReleaseEvent(ev)
         else:
             return super().keyReleaseEvent(ev)
     # =================================================

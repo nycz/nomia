@@ -1,8 +1,8 @@
-<div class="entry_container {statusclass}">
+<div class="entry_container {statusclass}" id="entry{id}">
     <div class="list_entry">
         <div class="leftest">
             <div><img src="file:///{image}" class="cover"/></div>
-            <div class="id">{id}</div>
+            <div class="id">{num}</div>
         </div>
         <div class="left">
             <!-- <div class="id">{id}</div> -->
@@ -19,14 +19,14 @@
             <div class="semitag rating">{rating}</div>
         <!-- </div> -->
     </div>
-    <div class="entry_info" id="entry_info_{id}">
+    <div class="entry_info">
         <div class="miscinfocontainer">
             <div class="miscinfo">
                 <span class="title">Studio:</span> {studio}<br>
                 <span class="title">Episode length:</span> {eplength}<br>
                 <span class="title">Space on disk:</span> {epspace} per ep, {totalspace} total<br>
-                <span class="title">Aired:</span> {airingstart} - {airingend}<br>
-                <span class="title">Watched:</span> {watchingstart} - {watchingend}
+                <span class="title">Aired:</span> {airing}<br>
+                <span class="title">Watched:</span> {watching}
             </div>
             <div class="scorenames">
                 Characters:<br>
@@ -46,3 +46,4 @@
         <div class="comment">{comment}</div>
     </div>
 </div>
+<hr id="hr{id}"/>
