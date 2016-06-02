@@ -305,7 +305,9 @@ class IndexFrame(QtGui.QWidget):
     def sort_entries(self, arg):
         reverse = arg.startswith('-')
         arg = arg[reverse:]
-
+        if arg not in self.attributes:
+            self.terminal.error('Unknown attribute: {}'.format(arg))
+            return
         self.view.sort_entries(arg, reverse)
 
 
