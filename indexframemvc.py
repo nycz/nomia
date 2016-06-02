@@ -171,6 +171,9 @@ class IndexFrame(QtGui.QWidget):
                               end=r'$|[(),|]',
                               illegal_chars='()|,',
                               get_suggestion_list=self.get_autocompletion_data)
+        ac.add_completion(name='sort',
+                          prefix=r's\s*-?',
+                          get_suggestion_list=self.get_autocompletion_data)
         return ac
 
     def autocomplete(self, reverse):
@@ -236,7 +239,7 @@ class IndexFrame(QtGui.QWidget):
         self.terminal.attributes = self.attributes.keys()
 
     def get_autocompletion_data(self, name, text):
-        if name == 'filter:attrname':
+        if name == 'filter:attrname' or name == 'sort':
             return [x for x in sorted(self.attributes.keys()) if x.startswith(text)]
         elif name.startswith('filter:attr:'):
             attribute = name.split(':', 2)[2]
