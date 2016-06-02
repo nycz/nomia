@@ -152,6 +152,7 @@ class IndexFrame(QtGui.QWidget):
         ac = AutoCompleter()
         self.terminal.input_term.tab_pressed.connect(self.autocomplete)
         self.terminal.input_term.reset_ac_suggestions.connect(ac.reset_suggestions)
+        # Filtering
         ac.add_completion(name='filter:attr:tags',
                           prefix=r'f\s*',
                           start=r'(^|[(),|])\s*-?#',
@@ -171,9 +172,28 @@ class IndexFrame(QtGui.QWidget):
                               end=r'$|[(),|]',
                               illegal_chars='()|,',
                               get_suggestion_list=self.get_autocompletion_data)
+        # Sorting
         ac.add_completion(name='sort',
                           prefix=r's\s*-?',
                           get_suggestion_list=self.get_autocompletion_data)
+        # Editing
+        ac.add_completion(name='edit:attrname',
+                          prefix=r'e\d+\s*',
+                          end=r'$|:',
+                          illegal_chars=':',
+                          get_suggestion_list=self.get_autocompletion_data)
+        for attribute in self.autocompleted_attributes:
+            if attribute == 'tags':
+                ac.add_completion(name='edit:attr:{}'.format(attribute),
+                                  prefix=r'e\d+\s*',
+                                  start=r'(^{}:|,\s*)'.format(attribute),
+                                  end=r'$|,',
+                                  get_suggestion_list=self.get_autocompletion_data)
+            else:
+                ac.add_completion(name='edit:attr:{}'.format(attribute),
+                                  prefix=r'e\d+\s*',
+                                  start=r'^{}:'.format(attribute),
+                                  get_suggestion_list=self.get_autocompletion_data)
         return ac
 
     def autocomplete(self, reverse):
@@ -190,7 +210,7 @@ class IndexFrame(QtGui.QWidget):
             (t.filter_,                 self.filter_entries),
             (t.sort,                    self.sort_entries),
             (t.toggle,                  self.toggle_entry_info),
-            #(t.edit,                    self.edit_entry),
+            (t.edit,                    self.edit_entry),
             ##(t.new_entry,               self.new_entry),
             #(t.input_term.scroll_index, self.webview.event),
             #(t.list_,                   self.list_),
@@ -239,9 +259,9 @@ class IndexFrame(QtGui.QWidget):
         self.terminal.attributes = self.attributes.keys()
 
     def get_autocompletion_data(self, name, text):
-        if name == 'filter:attrname' or name == 'sort':
+        if name in ['filter:attrname', 'edit:attrname', 'sort']:
             return [x for x in sorted(self.attributes.keys()) if x.startswith(text)]
-        elif name.startswith('filter:attr:'):
+        elif name.startswith('filter:attr:') or name.startswith('edit:attr:'):
             attribute = name.split(':', 2)[2]
             if attribute == 'tags':
                 data = (tag for entry in self.entrylist.entries.values()
@@ -313,26 +333,30 @@ class IndexFrame(QtGui.QWidget):
             return
         self.view.sort_entries(arg, reverse)
 
+    def edit_entry(self, arg):
+        promptrx = re.fullmatch(r'(?P<num>\d+)\s*(?P<attrname>[^:]+)(:(?P<data>.*))?', arg)
+        if promptrx is None:
+            self.terminal.error('Invalid edit command')
+            return
+        num = int(promptrx.groupdict()['num'])
+        try:
+            entryid = self.view.get_entry_id(num)
+        except IndexError:
+            self.terminal.error('Index out of range')
+            return
+        attribute = promptrx.groupdict()['attrname']
+        if attribute not in self.attributes:
+            self.terminal.error('Unknown attribute')
+            return
+        # Prompt the current data if none is provided
+        if not promptrx.groupdict('')['data'].strip():
+            data = self.entrylist.entries[entryid][attribute]
+            promptstr = 'e{num} {attrname}: {newdata}'.format(newdata=data, **promptrx.groupdict())
+            self.terminal.prompt(promptstr)
+            return
 
-        # Regular filter command
-    #    elif re.fullmatch(r'[{}] +\S.*'.format(filterchars), arg):
-    #        cmd = arg[0]
-    #        payload = arg.split(None,1)[1].strip()
-    #self.active_filters = self.active_filters._replace(**{filters[cmd]: payload})
-    #        try:
-    #            visible_entries = self.regenerate_visible_entries()
-    #        except SyntaxError as e:
-    #            # This should be an error from the tag parser
-    #            self.error('[Tag parsing] {}'.format(e))
-    #            return
-    #        resultstr = 'Filtered: {}/{} entries visible'
-    #    # Only actually update stuff if the entries have changed
-    #    if visible_entries != self.visible_entries:
-    #        self.visible_entries = visible_entries
-    #        self.refresh_view()
-    #    # Print the output
-    #    filtered, total = len(self.visible_entries), len(self.entries)
-    #    self.print_(resultstr.format(filtered, total))
+
+
 
 # MATCH FUNCTIONS
 

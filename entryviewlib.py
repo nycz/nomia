@@ -76,7 +76,7 @@ class HTMLEntryView(EntryView):
         self.sortreverse = False
         self.hiddenentries = set()
         self.entries = []
-        self._entrynumbers = {}
+        self._entrynumbers = []
         self.webview = QtWebKit.QWebView(parent)
         self.webview.setDisabled(True)
         self.set_stylesheet(stylesheetpath)
