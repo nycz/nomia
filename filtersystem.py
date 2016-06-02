@@ -66,7 +66,10 @@ def _handle_chunk(chunk, entrydata, matchfuncs):
     if chunk.startswith('#'):
         result = matchfuncs['tags'](chunk[1:], entrydata['tags'])
     else:
-        attribute, arg = re.fullmatch(r'(.+?):(.*)', chunk).groups()
+        try:
+            attribute, arg = re.fullmatch(r'(.+?):(.*)', chunk).groups()
+        except AttributeError:
+            raise SyntaxError('Invalid filter chunk: {}'.format(chunk))
         if attribute not in entrydata:
             raise SyntaxError('Unknown attribute: {}'.format(attribute))
         result = matchfuncs[attribute](arg, entrydata[attribute])

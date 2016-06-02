@@ -286,12 +286,20 @@ class IndexFrame(QtGui.QWidget):
         if arg.strip() == '-':
             self.view.set_hidden_entries(set())
             return
-        filterexpression = compile_tag_filter(arg, self.settings['tag macros'])
+        try:
+            filterexpression = compile_tag_filter(arg, self.settings['tag macros'])
+        except SyntaxError as e:
+            self.terminal.error(str(e))
+            return
         hiddenentries = set()
         matchfuncs = {k:v[0] for k,v in self.attributes.items()}
-        for id_, entry in self.entrylist.entries.items():
-            if not run_filter(filterexpression, entry, matchfuncs):
-                hiddenentries.add(id_)
+        try:
+            for id_, entry in self.entrylist.entries.items():
+                if not run_filter(filterexpression, entry, matchfuncs):
+                    hiddenentries.add(id_)
+        except SyntaxError as e:
+            self.terminal.error(str(e))
+            return
         self.view.set_hidden_entries(hiddenentries)
 
     def sort_entries(self, arg):
@@ -322,6 +330,8 @@ class IndexFrame(QtGui.QWidget):
     #    self.print_(resultstr.format(filtered, total))
 
 # MATCH FUNCTIONS
+
+
 
 def match_string(arg, data):
     return arg.lower() in data.lower()
