@@ -206,7 +206,7 @@ class IndexFrame(QtGui.QWidget):
 
     def init_attributes(self):
         return {
-            'MAL_id': [match_string],
+            'MAL_id': [match_int],
             'airing_finished': [match_date],
             'airing_started': [match_date],
             'available_locally': [match_flag],
@@ -346,31 +346,33 @@ def match_flag(arg, data):
         raise SyntaxError('Invalid flag match expression')
     return bool(data)
 
-def match_int(arg, data):
-    arg = arg.replace(' ', '')
-    if arg.lstrip('=').isdecimal():
-        return int(arg) == data
-    from operator import lt,gt,le,ge
-    compfuncs = {'<':lt, '>':gt, '<=':le, '>=':ge}
-    rx = re.fullmatch(r'([<>]=?)(\d+k?)', arg.strip())
-    if rx is None:
-        raise SyntaxError('Invalid number match expression: {}'.format(arg))
-    return compfuncs[rx.group(1)](data, int(rx.group(2).replace('k','000')))
-
-def match_score(arg, data):
+def get_comparison_function(arg):
+    from operator import lt,gt,le,ge,eq
     arg = arg.replace(' ', '')
     if not arg:
+        raise SyntaxError('Invalid argument')
+    compfuncs = {'<':lt, '>':gt, '<=':le, '>=':ge, '=': eq, '': eq}
+    opstr, rest = re.fullmatch(r'([<>]?=?)(.+)', arg).groups()
+    return compfuncs[opstr], rest
+
+
+def match_int(arg, data):
+    op, rest = get_comparison_function(arg)
+    if not rest.isdecimal():
+        raise SyntaxError('Invalid int match expression')
+    return op(data, int(rest))
+
+
+def match_score(arg, data):
+    # Only show unscored entries when explicitly told to
+    if not arg.strip():
         return data == 0
     elif data == 0:
         return False
-    if arg.lstrip('=').isdecimal():
-        return int(arg) == data
-    from operator import lt,gt,le,ge
-    compfuncs = {'<':lt, '>':gt, '<=':le, '>=':ge}
-    rx = re.fullmatch(r'([<>]=?)(\d+)', arg)
-    if rx is None:
-        raise SyntaxError('Invalid score match expression: {}'.format(arg))
-    return compfuncs[rx.group(1)](data, int(rx.group(2)))
+    op, rest = get_comparison_function(arg)
+    if not rest.isdecimal():
+        raise SyntaxError('Invalid int match expression')
+    return op(data, int(rest))
 
 def match_space(arg, data):
     pass
@@ -379,15 +381,13 @@ def match_date(arg, data):
     pass
 
 def match_duration(arg, data):
-    arg = arg.replace(' ', '')
-    rx = re.fullmatch(r'(?P<op>[<>]?=?)((?P<h>\d+)h)?((?P<m>\d+)m)?((?P<s>\d+)s)?', arg)
-    if not arg or rx is None:
+    op, rest = get_comparison_function(arg)
+    rx = re.fullmatch(r'((?P<h>\d+)h)?((?P<m>\d+)m)?((?P<s>\d+)s)?', rest)
+    if rx is None:
         raise SyntaxError('Invalid duration match expression: {}'.format(arg))
-    from operator import lt,gt,le,ge,eq
-    compfuncs = {'<':lt, '>':gt, '<=':le, '>=':ge, '': eq, '=': eq}
     d = rx.groupdict(0)
     totalseconds = int(d['h'])*3600+int(d['m'])*60+int(d['s'])
-    return compfuncs[d['op']](data, totalseconds)
+    return op(data, totalseconds)
 
 
 
