@@ -230,7 +230,6 @@ class IndexFrame(QtGui.QWidget):
             'MAL_id': [match_int],
             'airing_finished': [match_date],
             'airing_started': [match_date],
-            'available_locally': [match_flag],
             'comment': [match_string],
             'description': [match_string],
             'episode_length': [match_duration],

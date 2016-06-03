@@ -64,11 +64,6 @@
         "type": "list",
         "id": ""
     },
-    "available_locally": {
-        "source": "manual",
-        "type": "bool",
-        "id": ""
-    },
     "space": {
         "source": "manual",
         "type": "int",
