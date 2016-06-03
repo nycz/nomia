@@ -21,6 +21,7 @@ class NomiaEntryList():
     def set_datapath(self, datapath):
         self.datapath = datapath
         self.entries = self.read_data(datapath)
+        self.undostack = []
 
     def read_data(self, datapath):
         data = read_json(datapath)
@@ -38,8 +39,15 @@ class NomiaEntryList():
         write_json(datapath)
 
     def set_entry_value(self, entryid, attribute, value):
+        oldvalue = self.entries[entryid][attribute]
+        undoitem = (entryid, attribute, oldvalue)
+        self.undostack.append(undoitem)
         self.entries[entryid][attribute] = value
 
+    def undo_last_change(self):
+        entryid, attribute, value = self.undostack.pop()
+        self.entries[entryid][attribute] = value
+        return entryid, attribute, value
 
 
 
@@ -373,6 +381,14 @@ class IndexFrame(QtGui.QWidget):
         self.view.sort_entries(arg, reverse)
 
     def edit_entry(self, arg):
+        if arg.strip() == 'u':
+            try:
+                entryid, attribute, data = self.entrylist.undo_last_change()
+            except IndexError:
+                self.terminal.error('Nothing to undo')
+            else:
+                self.view.set_entry_value(entryid, attribute, data)
+            return
         promptrx = re.fullmatch(r'(?P<num>\d+)\s*(?P<attrname>[^:]+)(:(?P<data>.*))?', arg)
         if promptrx is None:
             self.terminal.error('Invalid edit command')
