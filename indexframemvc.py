@@ -5,7 +5,7 @@ from os.path import join
 import re
 
 from PyQt4 import QtWebKit, QtGui, QtCore
-from PyQt4.QtCore import pyqtSignal, Qt
+from PyQt4.QtCore import pyqtSignal, Qt, QEvent
 
 from libsyntyche.common import read_json, read_file, local_path, kill_theming, write_file, write_json
 from libsyntyche.tagsystem import compile_tag_filter
@@ -161,7 +161,7 @@ class IndexFrame(QtGui.QWidget):
         self.view = NomiaHTMLEntryView(self, '#entry{}', '#hr{}', join(configdir, '.index.css'))
         self.view.templates = load_html_templates()
         layout.addWidget(self.view.webview, stretch=1)
-        self.terminal = Terminal(self, self.get_autocompletion_data)
+        self.terminal = Terminal(self)
         layout.addWidget(self.terminal)
         self.connect_signals()
         #self.view.set_stylesheet()
@@ -429,17 +429,11 @@ class Terminal(GenericTerminal):
     show_readme = pyqtSignal(str, str, str, str)
     test = pyqtSignal(str)
 
-    def __init__(self, parent, get_autocompletion_data):
+    def __init__(self, parent):
         super().__init__(parent, TerminalInputBox, GenericTerminalOutputBox)
-        #self.get_autocompletion_data = get_autocompletion_data
-        #self.autocomplete_type = ''
-        #self.autocomplete_attribute = ''
         # nuke libsyntyche's autocompletion
         self.input_term.tab_pressed.disconnect()
         self.input_term.reset_ac_suggestions.disconnect()
-        # These two are set in reload_settings() in sapfo.py
-        self.rootpath = ''
-        self.tagmacros = {}
         self.commands = {
             'f': (self.filter_, 'Filter'),
             'e': (self.edit, 'Edit'),
@@ -451,15 +445,11 @@ class Terminal(GenericTerminal):
             'h': (self.cmd_show_readme, 'Show readme'),
             't': (self.test, 'DEVCOMMAND'),
         }
-        self.attributes = []
-        #self.
 
     def cmd_show_readme(self, arg):
         self.show_readme.emit('', local_path('README.md'), None, 'markdown')
 
     def update_settings(self, settings):
-        self.rootpath = settings['path']
-        self.tagmacros = settings['tag macros']
         # Terminal animation settings
         self.output_term.animate = settings['animate terminal output']
         interval = settings['terminal animation interval']

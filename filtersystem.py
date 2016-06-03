@@ -57,7 +57,7 @@ def _handle_chunk(chunk, entrydata, matchfuncs):
     """
     # If it's an expression, send it along
     if not isinstance(chunk, str):
-        return _parse(chunk, entrydata)
+        return _parse(chunk, entrydata, matchfuncs)
     # Otherwise get on with it
     negative = chunk.startswith('-')
     chunk = chunk[negative:]
