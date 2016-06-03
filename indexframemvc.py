@@ -196,7 +196,7 @@ class IndexFrame(QtGui.QWidget):
             if attribute == 'tags':
                 ac.add_completion(name='edit:attr:{}'.format(attribute),
                                   prefix=r'e\d+\s*',
-                                  start=r'(^{}:|,\s*)'.format(attribute),
+                                  start=r'(^{}:|,)\s*'.format(attribute),
                                   end=r'$|,',
                                   get_suggestion_list=self.get_autocompletion_data)
             else:
