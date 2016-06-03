@@ -379,12 +379,23 @@ class IndexFrame(QtGui.QWidget):
         if attribute not in self.attributes:
             self.terminal.error('Unknown attribute')
             return
+        print(promptrx.groupdict())
+        parsefunc = self.attributes[attribute][1]
         # Prompt the current data if none is provided
         if not promptrx.groupdict('')['data'].strip():
-            data = self.entrylist.entries[entryid][attribute]
+            data = parsefunc(self.entrylist.entries[entryid][attribute], reverse=True)
             promptstr = 'e{num} {attrname}: {newdata}'.format(newdata=data, **promptrx.groupdict())
             self.terminal.prompt(promptstr)
             return
+        # Otherwise get to it
+        print(promptrx.groupdict()['data'])
+        try:
+            parseddata = parsefunc(promptrx.groupdict()['data'].strip())
+        except SyntaxError as e:
+            self.terminal.error(str(e))
+            return
+        self.entrylist.set_entry_value(entryid, attribute, parseddata)
+        self.view.set_entry_value(entryid, attribute, parseddata)
 
 
 # TERMINAL
