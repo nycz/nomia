@@ -105,7 +105,23 @@ def parse_date(arg, reverse=False):
                 return datearg
 
 def parse_duration(arg, reverse=False):
-    pass
+    if reverse:
+        time = [
+            ('h', arg // 3600),
+            ('m', arg // 60 % 60),
+            ('s', arg % 60)
+        ]
+        return ' '.join('{}{}'.format(num, unit)
+                        for unit, num in time if num > 0)
+    else:
+        fixedarg = arg.lower().replace(' ', '')
+        rx = re.fullmatch(r'((?P<h>\d+)h)?((?P<m>\d+)m(in)?)?((?P<s>\d+)s)?', fixedarg)
+        if rx is None:
+            raise SyntaxError('Invalid duration format')
+        d = rx.groupdict(0)
+        totalseconds = int(d['h'])*3600+int(d['m'])*60+int(d['s'])
+        return totalseconds
+
 
 def parse_space(arg, reverse=False):
     if reverse:
