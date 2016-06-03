@@ -14,7 +14,7 @@ from PyQt4.QtCore import Qt
 
 from libsyntyche.common import read_json, read_file, write_json, write_file, kill_theming, local_path, make_sure_config_exists
 from libsyntyche.fileviewer import FileViewer
-from indexframemvc import IndexFrame
+from indexframe import IndexFrame
 
 
 class MainWindow(QtGui.QWidget):
