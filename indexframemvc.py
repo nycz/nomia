@@ -341,7 +341,7 @@ class IndexFrame(QtGui.QWidget):
             self.view.set_hidden_entries(set())
             return
         try:
-            filterexpression = compile_tag_filter(arg, self.settings['tag macros'])
+            filterexpression = compile_tag_filter(arg, self.settings['filter macros'])
         except SyntaxError as e:
             self.terminal.error(str(e))
             return

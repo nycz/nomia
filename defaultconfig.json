@@ -17,7 +17,7 @@
   "animate terminal output": true,
   "terminal animation interval": 5,
   "tag colors": {},
-  "tag macros": {},
+  "filter macros": {},
   "formatting converters": [],
   "chapter strings": [],
   "backstory viewer formats": {
