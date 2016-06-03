@@ -12,27 +12,27 @@ _multipliers = {
     'gb': 10**9,
     'tb': 10**12
 }
+_monthabbrs = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
 
 def match_string(arg, data):
-    return arg.lower() in data.lower()
+    return arg.lower().strip() in data.lower()
 
-def _get_comparison_function(arg):
+def _get_comparison_function(arg, keepspaces=False):
     from operator import lt,gt,le,ge,eq
-    arg = arg.replace(' ', '')
+    if not keepspaces:
+        arg = arg.replace(' ', '')
     if not arg:
         raise SyntaxError('Invalid argument')
     compfuncs = {'<':lt, '>':gt, '<=':le, '>=':ge, '=': eq, '': eq}
     opstr, rest = re.fullmatch(r'([<>]?=?)(.+)', arg).groups()
     return compfuncs[opstr], rest
 
-
 def match_int(arg, data):
     op, rest = _get_comparison_function(arg)
     if not rest.isdecimal():
         raise SyntaxError('Invalid int match expression')
     return op(data, int(rest))
-
 
 def match_score(arg, data):
     # Only show unscored entries when explicitly told to
@@ -54,7 +54,30 @@ def match_space(arg, data):
     return op(data, int(float(rawnum) * _multipliers[rawunit]))
 
 def match_date(arg, data):
-    pass
+    op, rest = _get_comparison_function(arg.lower().strip(), keepspaces=True)
+    yearrx = re.fullmatch(r'(19|20)?(\d\d)', rest.strip())
+    monthyearrx = re.fullmatch(r'(\w+)\s*(\d{4})', rest.strip())
+    currentyear = date.today().year
+    if yearrx:
+        century, tens = yearrx.groups()
+        if yearrx.group(1) is None:
+            century = '19' if int('20'+tens) > currentyear else '20'
+        year = int(century + tens)
+        return op(data.year, year)
+    elif monthyearrx:
+        monthname, year = monthyearrx.groups()
+        try:
+            month = _monthabbrs.index(monthname)+1
+        except ValueError:
+            raise SyntaxError('Invalid month')
+        return op(data.year*12+data.month, int(year)*12+month)
+    else:
+        try:
+            fulldate = datetime.strptime(rest.strip(), '%Y-%m-%d').date()
+        except ValueError:
+            raise SyntaxError('Invalid date match expression')
+        else:
+            return op(data, fulldate)
 
 def match_duration(arg, data):
     op, rest = _get_comparison_function(arg)
@@ -92,7 +115,10 @@ def parse_string(arg, reverse=False):
 
 def parse_date(arg, reverse=False):
     if reverse:
-        return arg.strftime('%Y-%m-%d')
+        if arg is None:
+            return ''
+        else:
+            return arg.strftime('%Y-%m-%d')
     else:
         if arg.lower() == 'today':
             return date.today()
@@ -122,7 +148,6 @@ def parse_duration(arg, reverse=False):
         totalseconds = int(d['h'])*3600+int(d['m'])*60+int(d['s'])
         return totalseconds
 
-
 def parse_space(arg, reverse=False):
     if reverse:
         for x in ['', 'kib', 'mib', 'gib']:
@@ -140,7 +165,6 @@ def parse_space(arg, reverse=False):
             raise SyntaxError('Invalid space format')
         rawnum, rawunit = rx.groups('')
         return int(float(rawnum) * _multipliers[rawunit])
-
 
 def parse_tags(arg, reverse=False):
     if reverse:

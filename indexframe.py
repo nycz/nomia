@@ -209,7 +209,7 @@ class IndexFrame(QtGui.QWidget):
         for attribute in self.autocompleted_attributes:
             ac.add_completion(name='filter:attr:{}'.format(attribute),
                               prefix=r'f\s*',
-                              start=r'(^|[(),|])\s*-?{}:'.format(attribute),
+                              start=r'(^|[(),|])\s*-?{}:\s*'.format(attribute),
                               end=r'$|[(),|]',
                               illegal_chars='()|,',
                               get_suggestion_list=self.get_autocompletion_data)
