@@ -283,6 +283,8 @@ class IndexFrame(QtGui.QWidget):
             else:
                 data = (entry[attribute] for entry in self.entrylist.entries.values()
                         if entry[attribute].startswith(text))
+        else:
+            raise NotImplementedError('TODO: {}'.format(name))
         try:
             result = list(zip(*Counter(data).most_common()))[0]
         except IndexError:
