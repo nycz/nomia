@@ -50,3 +50,57 @@ def match_duration(arg, data):
     totalseconds = int(d['h'])*3600+int(d['m'])*60+int(d['s'])
     return op(data, totalseconds)
 
+
+
+# CONVERSION TO AND FROM THE INPUT (TERMINAL)
+
+def parse_int(arg, reverse=False):
+    if reverse:
+        return str(arg)
+    else:
+        if not arg.isdecimal():
+            raise SyntaxError('Invalid int')
+        return int(arg)
+
+def parse_score(arg, reverse=False):
+    if reverse:
+        return str(arg)
+    else:
+        if not arg.isdecimal():
+            raise SyntaxError('Invalid score')
+        if int(arg) not in range(0,11):
+            raise SyntaxError('Score has to be between 0 and 10')
+        return int(arg)
+
+def parse_string(arg, reverse=False):
+    return arg
+
+def parse_date(arg, reverse=False):
+    if reverse:
+        return arg.strftime('%Y-%m-%d')
+    else:
+        if arg.lower() == 'today':
+            return date.today()
+        else:
+            try:
+                datearg = datetime.strptime(arg, '%Y-%m-%d').date()
+            except ValueError:
+                raise SyntaxError('Invalid date format')
+            else:
+                return datearg
+
+def parse_duration(arg, reverse=False):
+    pass
+
+def parse_space(arg, reverse=False):
+    pass
+
+def parse_tags(arg, reverse=False):
+    if reverse:
+        return ', '.join(sorted(arg))
+    else:
+        tags = set(re.split(r'\s*,\s*', arg))
+        for tag in tags:
+            if not re.fullmatch(r'[^()|]+', tag):
+                raise SyntaxError('Invalid tag')
+        return tags
