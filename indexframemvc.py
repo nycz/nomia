@@ -7,7 +7,7 @@ import re
 from PyQt4 import QtWebKit, QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal, Qt
 
-from libsyntyche.common import read_json, read_file, local_path, kill_theming
+from libsyntyche.common import read_json, read_file, local_path, kill_theming, write_file, write_json
 from libsyntyche.tagsystem import compile_tag_filter
 from libsyntyche.terminal import GenericTerminalInputBox, GenericTerminalOutputBox, GenericTerminal
 
@@ -316,8 +316,7 @@ class IndexFrame(QtGui.QWidget):
         #element.setStyleProperty('display', newdisplay)
 
     def dev_command(self, arg):
-        x = self.view.page().mainFrame().findFirstElement('div.entry_container')
-        x.setPlainText('HAHAHAHAHAHAHA')
+        write_file('dump.html', self.view.webview.page().mainFrame().toHtml())
 
 
     def filter_entries(self, arg):
