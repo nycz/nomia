@@ -71,6 +71,14 @@ class NomiaHTMLEntryView(HTMLEntryView):
                 return 'N/A'
             d = ['?' if x is None else x.strftime('%Y-%m-%d') for x in (date1,date2)]
             return '{} – {}'.format(*d)
+        def format_bytes(rawbytes):
+            if rawbytes <= 0:
+                return 'N/A'
+            for x in ['', 'KiB', 'MiB', 'GiB']:
+                if rawbytes < 1024:
+                    return '{:.1f} {}'.format(rawbytes, x)
+                rawbytes /= 1024
+            return '{:,.1f} TiB'.format(rawbytes)
         fentry = {
             'id': id_,
             'title': entry['title'],
@@ -87,8 +95,8 @@ class NomiaHTMLEntryView(HTMLEntryView):
             # Extended
             'studio': entry['studio'],
             'eplength': format_duration(entry['episode_length']),
-            'totalspace': entry['space'],
-            'epspace': entry['space_per_episode'],
+            'space': format_bytes(entry['space']),
+            'epspace': format_bytes(entry['space_per_episode']),
             'airing': format_daterange(entry['airing_started'], entry['airing_finished']),
             'watching': format_daterange(entry['watching_started'], entry['watching_finished']),
             'charscore': get_score(entry['score_characters']),
