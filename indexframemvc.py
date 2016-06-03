@@ -180,6 +180,12 @@ class IndexFrame(QtGui.QWidget):
         self.terminal.input_term.tab_pressed.connect(self.autocomplete)
         self.terminal.input_term.reset_ac_suggestions.connect(ac.reset_suggestions)
         # Filtering
+        ac.add_completion(name='filter:macros',
+                          prefix=r'f\s*',
+                          start=r'(^|[(),|])\s*-?@',
+                          end=r'$|[(),|]',
+                          illegal_chars='()|,',
+                          get_suggestion_list=self.get_autocompletion_data)
         ac.add_completion(name='filter:attr:tags',
                           prefix=r'f\s*',
                           start=r'(^|[(),|])\s*-?#',
@@ -291,6 +297,8 @@ class IndexFrame(QtGui.QWidget):
                 return [suggestions[0] + ': ']
             else:
                 return suggestions
+        elif name == 'filter:macros':
+            return [x for x in sorted(self.settings['filter macros']) if x.startswith(text)]
         elif name.startswith('filter:attr:') or name.startswith('edit:attr:'):
             attribute = name.split(':', 2)[2]
             if attribute == 'tags':
