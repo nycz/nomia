@@ -1,6 +1,18 @@
 from datetime import datetime, date
 import re
 
+_multipliers = {
+    '': 1,
+    'kib': 2**10,
+    'mib': 2**20,
+    'gib': 2**30,
+    'tib': 2**40,
+    'kb': 10**3,
+    'mb': 10**6,
+    'gb': 10**9,
+    'tb': 10**12
+}
+
 
 def match_string(arg, data):
     return arg.lower() in data.lower()
@@ -93,7 +105,23 @@ def parse_duration(arg, reverse=False):
     pass
 
 def parse_space(arg, reverse=False):
-    pass
+    if reverse:
+        for x in ['', 'kib', 'mib', 'gib']:
+            if arg < 1024:
+                result = '{:.1f}{}'.format(arg, x)
+                break
+            arg /= 1024
+        else:
+            result = '{:,.1f}tib'.format(arg)
+        # Remove the decimal if it's a zero
+        return result.replace('.0','')
+    else:
+        rx = re.fullmatch(r'(\d+|\d+\.\d+)\s*([kmgt]i?b?)?', arg.lower())
+        if not rx:
+            raise SyntaxError('Invalid space format')
+        rawnum, rawunit = rx.groups('')
+        return int(float(rawnum) * _multipliers[rawunit])
+
 
 def parse_tags(arg, reverse=False):
     if reverse:
