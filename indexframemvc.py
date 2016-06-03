@@ -62,10 +62,12 @@ class NomiaHTMLEntryView(HTMLEntryView):
         def get_score(num):
             return num if num > 0 else '-'
         def format_duration(totalseconds):
-            h = totalseconds // 3600
-            m = totalseconds // 60 % 60
-            s = totalseconds % 60
-            return ', '.join('{}{}'.format(v, vn) for v, vn in ((h,' h'),(m,' min'), (s,' s')) if v)
+            time = [
+                ('h', totalseconds // 3600),
+                ('m', totalseconds // 60 % 60),
+                ('s', totalseconds % 60),
+            ]
+            return ', '.join('{}{}'.format(num, unit) for unit, num in time if num > 0)
         def format_daterange(date1, date2):
             if date1 is None and date2 is None:
                 return 'N/A'
