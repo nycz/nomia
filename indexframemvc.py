@@ -78,7 +78,7 @@ class NomiaHTMLEntryView(HTMLEntryView):
             'score': get_score(entry['score_overall']),
             'type': entry['type'],
             'progress': entry['episodes_progress'],
-            'image': get_image(entry['MAL_id']),
+            'image': get_image(entry['mal_id']),
             'maxeps': entry['episodes_total'],
             # Extended
             'studio': entry['studio'],
@@ -236,7 +236,7 @@ class IndexFrame(QtGui.QWidget):
 
     def init_attributes(self):
         return {
-            'MAL_id': [match_int],
+            'mal_id': [match_int],
             'airing_finished': [match_date],
             'airing_started': [match_date],
             'comment': [match_string],
