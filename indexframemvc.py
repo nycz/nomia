@@ -41,6 +41,10 @@ class NomiaEntryList():
 
 
 class NomiaHTMLEntryView(HTMLEntryView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.expandedentries = set()
+
     def format_entry(self, n, id_, entry):
         def format_tags(tags):
             return '<wbr>'.join(
@@ -93,21 +97,26 @@ class NomiaHTMLEntryView(HTMLEntryView):
         return self.templates['entry'].format(num=n, **fentry)
 
     def toggle_entry_info(self, n):
-        elementid = self.entryelementid.format(self.get_entry_id(n))
+        entryid = self.get_entry_id(n)
+        elementid = self.entryelementid.format(entryid)
         element = self.webview.page().mainFrame().findFirstElement(elementid)
         child = element.findFirst('div.entry_info')
-        display = child.styleProperty('display', QtWebKit.QWebElement.ComputedStyle)
-        if display == 'none':
-            newdisplay = '-webkit-flex'
-        else:
+        if entryid in self.expandedentries:
             newdisplay = 'none'
+            self.expandedentries.remove(entryid)
+        else:
+            newdisplay = '-webkit-flex'
+            self.expandedentries.add(entryid)
         child.setStyleProperty('display', newdisplay)
 
-
-
-
-
-
+    def set_entry_value(self, entryid, attribute, newvalue):
+        super().set_entry_value(entryid, attribute, newvalue)
+        # Re-expand it if it was expanded before
+        if entryid in self.expandedentries:
+            frame = self.webview.page().mainFrame()
+            elementid = self.entryelementid.format(entryid)
+            element = frame.findFirstElement(elementid).findFirst('div.entry_info')
+            element.setStyleProperty('display', '-webkit-flex')
 
 
 
