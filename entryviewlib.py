@@ -70,8 +70,10 @@ class EntryView(metaclass=ABCMeta):
 
 
 class HTMLEntryView(EntryView):
-    def __init__(self, parent, entryelementid, stylesheetpath):
+    def __init__(self, parent, entryelementid, separatorelementid,
+                 stylesheetpath):
         self.entryelementid = entryelementid
+        self.separatorelementid = separatorelementid
         self.sortkey = ''
         self.sortreverse = False
         self.hiddenentries = set()
@@ -133,9 +135,14 @@ class HTMLEntryView(EntryView):
     def set_entry_value(self, entryid, attribute, newvalue):
         self.entries[entryid][attribute] = newvalue
         eid = self.entryelementid.format(entryid)
-        entryelement = self.page().mainFrame().findFirstElement(eid)
+        frame = self.webview.page().mainFrame()
+        entryelement = frame.findFirstElement(eid)
         html = self.format_entry(self._entrynumbers.index(entryid), entryid, self.entries[entryid])
-        entryelement.setPlainText(html)
+        sid = self.separatorelementid.format(entryid)
+        separatorelement = frame.findFirstElement(sid)
+        separatorelement.removeFromDocument()
+        entryelement.setOuterXml(html)
+
 
     def format_entry(self, n, id_, entry):
         raise NotImplementedError

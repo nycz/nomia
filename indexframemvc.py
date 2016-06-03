@@ -131,7 +131,7 @@ class IndexFrame(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
         kill_theming(layout)
         self.entrylist = NomiaEntryList()
-        self.view = NomiaHTMLEntryView(self, '#entry{}', join(configdir, '.index.css'))
+        self.view = NomiaHTMLEntryView(self, '#entry{}', '#hr{}', join(configdir, '.index.css'))
         self.view.templates = load_html_templates()
         layout.addWidget(self.view.webview, stretch=1)
         self.terminal = Terminal(self, self.get_autocompletion_data)
