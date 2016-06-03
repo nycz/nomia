@@ -132,6 +132,9 @@ class NomiaHTMLEntryView(HTMLEntryView):
             element = frame.findFirstElement(elementid).findFirst('div.entry_info')
             element.setStyleProperty('display', '-webkit-flex')
 
+    def update_html(self):
+        super().update_html()
+        self.expandedentries.clear()
 
 
 def load_html_templates():
