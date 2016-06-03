@@ -48,7 +48,7 @@ def match_score(arg, data):
 def match_space(arg, data):
     op, rest = _get_comparison_function(arg)
     rx = re.fullmatch(r'(?i)(\d+|\d+\.\d+)\s*([kmgt]i?b?)?', rest)
-    if not rx:
+    if rx is None:
         raise SyntaxError('Invalid space match expression')
     rawnum, rawunit = rx.groups('')
     return op(data, int(float(rawnum) * _multipliers[rawunit]))
@@ -60,7 +60,7 @@ def match_duration(arg, data):
     op, rest = _get_comparison_function(arg)
     rx = re.fullmatch(r'((?P<h>\d+)h)?((?P<m>\d+)m(in)?)?((?P<s>\d+)s)?', rest)
     if rx is None:
-        raise SyntaxError('Invalid duration match expression: {}'.format(arg))
+        raise SyntaxError('Invalid duration match expression')
     d = rx.groupdict(0)
     totalseconds = int(d['h'])*3600+int(d['m'])*60+int(d['s'])
     return op(data, totalseconds)
@@ -120,7 +120,7 @@ def parse_space(arg, reverse=False):
         return result.replace('.0','')
     else:
         rx = re.fullmatch(r'(\d+|\d+\.\d+)\s*([kmgt]i?b?)?', arg.lower())
-        if not rx:
+        if rx is None:
             raise SyntaxError('Invalid space format')
         rawnum, rawunit = rx.groups('')
         return int(float(rawnum) * _multipliers[rawunit])
@@ -132,6 +132,6 @@ def parse_tags(arg, reverse=False):
     else:
         tags = set(re.split(r'\s*,\s*', arg))
         for tag in tags:
-            if not re.fullmatch(r'[^()|]+', tag):
+            if re.fullmatch(r'[^()|]+', tag) is None:
                 raise SyntaxError('Invalid tag')
         return tags
