@@ -47,8 +47,11 @@ def match_score(arg, data):
 
 def match_space(arg, data):
     op, rest = _get_comparison_function(arg)
-    rx = re.fullmatch(r'(?i)(\d+|\d+\.\d+)([kmgt]?)', rest)
-    
+    rx = re.fullmatch(r'(?i)(\d+|\d+\.\d+)\s*([kmgt]i?b?)?', rest)
+    if not rx:
+        raise SyntaxError('Invalid space match expression')
+    rawnum, rawunit = rx.groups('')
+    return op(data, int(float(rawnum) * _multipliers[rawunit]))
 
 def match_date(arg, data):
     pass
