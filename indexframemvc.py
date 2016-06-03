@@ -30,11 +30,15 @@ class NomiaEntryList():
                 if entry[x] == '0000-00-00':
                     entry[x] = None
                 else:
-                    entry[x] = datetime.strptime(entry[x], '%Y-%m-%d')
+                    entry[x] = datetime.strptime(entry[x], '%Y-%m-%d').date()
+                entry['tags'] = set(entry['tags'])
         return data
 
     def write_data(self, datapath):
         write_json(datapath)
+
+    def set_entry_value(self, entryid, attribute, value):
+        self.entries[entryid][attribute] = value
 
 
 
