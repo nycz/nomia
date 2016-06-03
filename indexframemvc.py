@@ -269,7 +269,11 @@ class IndexFrame(QtGui.QWidget):
 
     def get_autocompletion_data(self, name, text):
         if name in ['filter:attrname', 'edit:attrname', 'sort']:
-            return [x for x in sorted(self.attributes.keys()) if x.startswith(text)]
+            suggestions = [x for x in sorted(self.attributes.keys()) if x.startswith(text)]
+            if len(suggestions) == 1 and name != 'sort':
+                return [suggestions[0] + ': ']
+            else:
+                return suggestions
         elif name.startswith('filter:attr:') or name.startswith('edit:attr:'):
             attribute = name.split(':', 2)[2]
             if attribute == 'tags':
