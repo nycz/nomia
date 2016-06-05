@@ -41,13 +41,16 @@ class NomiaEntryList():
     def set_entry_value(self, entryid, attribute, value):
         oldvalue = self.entries[entryid][attribute]
         undoitem = (entryid, attribute, oldvalue)
-        self.undostack.append(undoitem)
+        self.undostack.append([undoitem])
         self.entries[entryid][attribute] = value
 
     def undo_last_change(self):
-        entryid, attribute, value = self.undostack.pop()
-        self.entries[entryid][attribute] = value
-        return entryid, attribute, value
+        actions = self.undostack.pop()
+        updates = []
+        for entryid, attribute, value in actions:
+            self.entries[entryid][attribute] = value
+            updates.append((entryid, self.entries[entryid]))
+        return updates
 
 
 
@@ -131,8 +134,8 @@ class NomiaHTMLEntryView(HTMLEntryView):
             self.expandedentries.add(entryid)
         child.setStyleProperty('display', newdisplay)
 
-    def set_entry_value(self, entryid, attribute, newvalue):
-        super().set_entry_value(entryid, attribute, newvalue)
+    def set_entry_data(self, entryid, *args, **kwargs):
+        super().set_entry_data(entryid, *args, **kwargs)
         # Re-expand it if it was expanded before
         if entryid in self.expandedentries:
             frame = self.webview.page().mainFrame()
@@ -140,8 +143,8 @@ class NomiaHTMLEntryView(HTMLEntryView):
             element = frame.findFirstElement(elementid).findFirst('div.entry_info')
             element.setStyleProperty('display', '-webkit-flex')
 
-    def update_html(self):
-        super().update_html()
+    def update_html(self, *args, **kwargs):
+        super().update_html(*args, **kwargs)
         self.expandedentries.clear()
 
 
@@ -354,7 +357,7 @@ class IndexFrame(QtGui.QWidget):
 
     def filter_entries(self, arg):
         if arg.strip() == '-':
-            self.view.set_hidden_entries(set())
+            self.view.set_hidden_entries(set(), self.entrylist.entries)
             return
         try:
             filterexpression = compile_tag_filter(arg, self.settings['filter macros'])
@@ -370,7 +373,7 @@ class IndexFrame(QtGui.QWidget):
         except SyntaxError as e:
             self.terminal.error(str(e))
             return
-        self.view.set_hidden_entries(hiddenentries)
+        self.view.set_hidden_entries(hiddenentries, self.entrylist.entries)
 
     def sort_entries(self, arg):
         reverse = arg.startswith('-')
@@ -378,16 +381,17 @@ class IndexFrame(QtGui.QWidget):
         if arg not in self.attributes:
             self.terminal.error('Unknown attribute: {}'.format(arg))
             return
-        self.view.sort_entries(arg, reverse)
+        self.view.sort_entries(arg, self.entrylist.entries, reverse)
 
     def edit_entry(self, arg):
         if arg.strip() == 'u':
             try:
-                entryid, attribute, data = self.entrylist.undo_last_change()
+                actions = self.entrylist.undo_last_change()
             except IndexError:
                 self.terminal.error('Nothing to undo')
             else:
-                self.view.set_entry_value(entryid, attribute, data)
+                for entryid, data in actions:
+                    self.view.set_entry_data(entryid, data)
             return
         promptrx = re.fullmatch(r'(?P<num>\d+)\s*(?P<attrname>[^:]+)(:(?P<data>.*))?', arg)
         if promptrx is None:
@@ -403,7 +407,6 @@ class IndexFrame(QtGui.QWidget):
         if attribute not in self.attributes:
             self.terminal.error('Unknown attribute')
             return
-        print(promptrx.groupdict())
         parsefunc = self.attributes[attribute][1]
         # Prompt the current data if none is provided
         if not promptrx.groupdict('')['data'].strip():
@@ -412,14 +415,13 @@ class IndexFrame(QtGui.QWidget):
             self.terminal.prompt(promptstr)
             return
         # Otherwise get to it
-        print(promptrx.groupdict()['data'])
         try:
             parseddata = parsefunc(promptrx.groupdict()['data'].strip())
         except SyntaxError as e:
             self.terminal.error(str(e))
             return
         self.entrylist.set_entry_value(entryid, attribute, parseddata)
-        self.view.set_entry_value(entryid, attribute, parseddata)
+        self.view.set_entry_data(entryid, self.entrylist.entries[entryid])
 
 
 # TERMINAL

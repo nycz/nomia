@@ -61,7 +61,7 @@ class EntryView(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def set_entry_value(self, entryid, attribute, newvalue):
+    def set_entry_data(self, entryid, data):
         pass
 
     @abstractmethod
@@ -77,7 +77,6 @@ class HTMLEntryView(EntryView):
         self.sortkey = ''
         self.sortreverse = False
         self.hiddenentries = set()
-        self.entries = []
         self._entrynumbers = []
         self.webview = QtWebKit.QWebView(parent)
         self.webview.setDisabled(True)
@@ -93,7 +92,7 @@ class HTMLEntryView(EntryView):
     def set_stylesheet(self, path):
         self.webview.settings().setUserStyleSheetUrl(QtCore.QUrl('file:///{}'.format(path)))
 
-    def update_html(self):
+    def update_html(self, entries):
         def key(entry):
             id_, datadict = entry
             if not self.sortkey:
@@ -102,7 +101,7 @@ class HTMLEntryView(EntryView):
                 return datadict[self.sortkey]
         sortedvisibleentries = [
             (id_, datadict)
-            for id_, datadict in sorted(self.entries.items(), key=key, reverse=self.sortreverse)
+            for id_, datadict in sorted(entries.items(), key=key, reverse=self.sortreverse)
             if id_ not in self.hiddenentries
         ]
         self._entrynumbers = [id_ for id_, _ in sortedvisibleentries]
@@ -113,31 +112,29 @@ class HTMLEntryView(EntryView):
         self.webview.setHtml(self.pagetemplate.format('\n'.join(htmlentries)))
 
     def set_entries(self, entries):
-        self.entries = entries
-        self.update_html()
+        self.update_html(entries)
 
-    def sort_entries(self, attribute, reverse=False):
+    def sort_entries(self, attribute, entries, reverse=False):
         if self.sortkey == attribute and self.sortreverse == reverse:
             return
         self.sortkey = attribute
         self.sortreverse = reverse
-        self.update_html()
+        self.update_html(entries)
 
-    def set_hidden_entries(self, hiddenentries):
+    def set_hidden_entries(self, hiddenentries, entries):
         if not self.hiddenentries ^ hiddenentries:
             return
         self.hiddenentries = hiddenentries
-        self.update_html()
+        self.update_html(entries)
 
     def get_entry_id(self, number):
         return self._entrynumbers[number]
 
-    def set_entry_value(self, entryid, attribute, newvalue):
-        self.entries[entryid][attribute] = newvalue
+    def set_entry_data(self, entryid, data):
         eid = self.entryelementid.format(entryid)
         frame = self.webview.page().mainFrame()
         entryelement = frame.findFirstElement(eid)
-        html = self.format_entry(self._entrynumbers.index(entryid), entryid, self.entries[entryid])
+        html = self.format_entry(self._entrynumbers.index(entryid), entryid, data)
         sid = self.separatorelementid.format(entryid)
         separatorelement = frame.findFirstElement(sid)
         separatorelement.removeFromDocument()
