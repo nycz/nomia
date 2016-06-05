@@ -95,7 +95,7 @@ class MainWindow(QtGui.QWidget):
             self.setWindowTitle('Nomia')
         self.settings = copy.deepcopy(settings)
         self.index_viewer.update_settings(settings)
-        self.popuphomekey.setKey(QtGui.QKeySequence(settings['hotkeys']['home']))
+        self.popuphomekey.setKey(QtGui.QKeySequence(settings['hotkey home']))
         #if style != self.style:
         self.style = style.copy()
         self.update_style(style)
