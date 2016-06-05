@@ -4,6 +4,7 @@ from datetime import datetime
 from operator import attrgetter
 from os.path import join
 import re
+import webbrowser
 
 from PyQt4 import QtWebKit, QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal, Qt, QEvent
@@ -309,6 +310,7 @@ class IndexFrame(QtGui.QWidget):
             #(t.quit,                    self.quit.emit),
             #(t.show_readme,             self.show_popup.emit),
             (t.test,                    self.dev_command),
+            (t.open_website,            self.open_website),
         )
         for signal, slot in connects:
             signal.connect(slot)
@@ -403,6 +405,19 @@ class IndexFrame(QtGui.QWidget):
 
     def dev_command(self, arg):
         write_file('dump.html', self.view.webview.page().mainFrame().toHtml())
+
+    def open_website(self, arg):
+        if not arg.strip().isdecimal():
+            self.terminal.error('Invalid entry specified')
+            return
+        try:
+            entryid = self.view.get_entry_id(int(arg.strip()))
+        except IndexError:
+            self.terminal.error('Index out of range')
+            return
+        malid = self.entrylist.entries[entryid]['mal_id']
+        url = 'http://myanimelist.net/anime/{}'
+        webbrowser.open_new_tab(url.format(malid))
 
 
     def filter_entries(self, arg):
@@ -535,6 +550,7 @@ class Terminal(GenericTerminal):
     new_entry = pyqtSignal(str)
     show_readme = pyqtSignal(str, str, str, str)
     test = pyqtSignal(str)
+    open_website = pyqtSignal(str)
 
     def __init__(self, parent):
         super().__init__(parent, TerminalInputBox, GenericTerminalOutputBox)
@@ -551,6 +567,7 @@ class Terminal(GenericTerminal):
             #'n': (self.new_entry, 'New entry'),
             'h': (self.cmd_show_readme, 'Show readme'),
             't': (self.test, 'DEVCOMMAND'),
+            'w': (self.open_website, 'Open MAL page in browser')
         }
 
     def cmd_show_readme(self, arg):
