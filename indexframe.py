@@ -1,4 +1,5 @@
 from collections import Counter
+from collections.abc import Set
 from datetime import datetime
 from operator import attrgetter
 from os.path import join
@@ -16,7 +17,11 @@ from filtersystem import run_filter, match_tags
 from entryviewlib import HTMLEntryView, EntryList
 from entryfunctions import *
 
+
 class NomiaEntryList():
+
+    def __init__(self):
+        self.dateformat = '%Y-%m-%d'
 
     def set_datapath(self, datapath):
         self.datapath = datapath
@@ -28,21 +33,32 @@ class NomiaEntryList():
         dateattributes = ['airing_started', 'airing_finished', 'watching_started', 'watching_finished']
         for entry in data.values():
             for x in dateattributes:
-                if entry[x] == '0000-00-00':
-                    entry[x] = None
-                else:
-                    entry[x] = datetime.strptime(entry[x], '%Y-%m-%d').date()
-                entry['tags'] = set(entry['tags'])
+                if entry[x] is not None:
+                    entry[x] = datetime.strptime(entry[x], self.dateformat).date()
+            entry['tags'] = set(entry['tags'])
         return data
 
+    def nonstandard_data_to_json(self, obj):
+        try:
+            datestring = obj.strftime(self.dateformat)
+        except AttributeError:
+            pass
+        else:
+            return datestring
+        if isinstance(obj, Set):
+            return list(obj)
+        raise TypeError
+
     def write_data(self, datapath):
-        write_json(datapath)
+        write_json(datapath, self.entries,
+                   default=self.nonstandard_data_to_json)
 
     def set_entry_value(self, entryid, attribute, value):
         oldvalue = self.entries[entryid][attribute]
         undoitem = (entryid, attribute, oldvalue)
         self.undostack.append([undoitem])
         self.entries[entryid][attribute] = value
+        self.write_data(self.datapath)
 
     def set_entry_values(self, actions):
         if not actions:
@@ -53,6 +69,7 @@ class NomiaEntryList():
             undoitems.append((entryid, attribute, oldvalue))
             self.entries[entryid][attribute] = value
         self.undostack.append(undoitems)
+        self.write_data(self.datapath)
 
     def undo_last_change(self):
         actions = self.undostack.pop()
@@ -60,6 +77,7 @@ class NomiaEntryList():
         for entryid, attribute, value in actions:
             self.entries[entryid][attribute] = value
             updates.append((entryid, self.entries[entryid]))
+        self.write_data(self.datapath)
         return updates
 
 
