@@ -26,10 +26,16 @@ def _match_tags_original(tag, oldtags, negative):
     # Otherwise it's fine
     return True
 
-def match_tags(tag, oldtags):
+def match_tags(rawtag, oldtags):
     """
     See if the tag exists in oldtags.
     """
+    tag = rawtag.strip()
+    if not tag:
+        if not oldtags:
+            return True
+        else:
+            return False
     if '*' in tag:
         rx = re.compile(tag.replace('*', '.+')+'$')
         for t in oldtags:
