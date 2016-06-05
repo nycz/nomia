@@ -28,6 +28,7 @@ div {{
     font-weight: {index entry description font weight};
     /*margin-left: 20px;*/
     margin-top: 5px;
+    margin-bottom: 5px;
 }}
 .empty_desc {{
     color: {index entry empty description color};
