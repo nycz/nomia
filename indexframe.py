@@ -176,6 +176,7 @@ class IndexFrame(QtGui.QWidget):
         layout.addWidget(self.terminal)
         self.connect_signals()
         #self.view.set_stylesheet()
+        self.currentfilter = None
         self.attributes = self.init_attributes()
         self.autocompleted_attributes = [
             'rating',
@@ -356,7 +357,14 @@ class IndexFrame(QtGui.QWidget):
 
 
     def filter_entries(self, arg):
+        if not arg:
+            if self.currentfilter:
+                self.terminal.prompt('f ' + self.currentfilter)
+            else:
+                self.terminal.error('No active filter')
+            return
         if arg.strip() == '-':
+            self.currentfilter = None
             self.view.set_hidden_entries(set(), self.entrylist.entries)
             return
         try:
@@ -373,6 +381,7 @@ class IndexFrame(QtGui.QWidget):
         except SyntaxError as e:
             self.terminal.error(str(e))
             return
+        self.currentfilter = arg
         self.view.set_hidden_entries(hiddenentries, self.entrylist.entries)
 
     def sort_entries(self, arg):
