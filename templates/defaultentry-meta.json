@@ -114,7 +114,7 @@
         "type": "str",
         "id": ""
     },
-    "MAL_id": {
+    "mal_id": {
         "source":  "xmllist",
         "type": "int",
         "id": "series_animedb_id"
