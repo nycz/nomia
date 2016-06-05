@@ -20,8 +20,9 @@ from entryfunctions import *
 
 class NomiaEntryList():
 
-    def __init__(self):
+    def __init__(self, dryrun):
         self.dateformat = '%Y-%m-%d'
+        self.dryrun = dryrun
 
     def set_datapath(self, datapath):
         self.datapath = datapath
@@ -50,6 +51,8 @@ class NomiaEntryList():
         raise TypeError
 
     def write_data(self, datapath):
+        if self.dryrun:
+            return
         write_json(datapath, self.entries,
                    default=self.nonstandard_data_to_json)
 
@@ -191,12 +194,12 @@ class TerminalIndexController():
 
 class IndexFrame(QtGui.QWidget):
 
-    def __init__(self, parent, dry_run, configdir):
+    def __init__(self, parent, dryrun, configdir):
         super().__init__(parent)
         self.configdir = configdir
         layout = QtGui.QVBoxLayout(self)
         kill_theming(layout)
-        self.entrylist = NomiaEntryList()
+        self.entrylist = NomiaEntryList(dryrun)
         self.view = NomiaHTMLEntryView(self, '#entry{}', '#hr{}', join(configdir, '.index.css'))
         self.view.templates = load_html_templates()
         layout.addWidget(self.view.webview, stretch=1)
