@@ -44,6 +44,16 @@ class NomiaEntryList():
         self.undostack.append([undoitem])
         self.entries[entryid][attribute] = value
 
+    def set_entry_values(self, actions):
+        if not actions:
+            return
+        undoitems = []
+        for entryid, attribute, value in actions:
+            oldvalue = self.entries[entryid][attribute]
+            undoitems.append((entryid, attribute, oldvalue))
+            self.entries[entryid][attribute] = value
+        self.undostack.append(undoitems)
+
     def undo_last_change(self):
         actions = self.undostack.pop()
         updates = []
@@ -233,12 +243,28 @@ class IndexFrame(QtGui.QWidget):
                                   prefix=r'e\d+\s*',
                                   start=r'(^{}:|,)\s*'.format(attribute),
                                   end=r'$|,',
+                                  illegal_chars=',',
                                   get_suggestion_list=self.get_autocompletion_data)
             else:
                 ac.add_completion(name='edit:attr:{}'.format(attribute),
                                   prefix=r'e\d+\s*',
                                   start=r'^{}:'.format(attribute),
                                   get_suggestion_list=self.get_autocompletion_data)
+        # Tag replacement
+        ac.add_completion(name='replace:attr:tags',
+                          prefix=r'e\*\s*',
+                          start=r'(^|,)\s*#',
+                          end=r'$|,',
+                          get_suggestion_list=self.get_autocompletion_data)
+        ac.add_completion(name='replace:attrname',
+                          prefix=r'e\*\s*',
+                          end=r'$|:',
+                          illegal_chars=':',
+                          get_suggestion_list=self.get_autocompletion_data)
+        ac.add_completion(name='replace:attr:tags',
+                          prefix=r'e\*\s*',
+                          start=r'(^\s*tags:|,)\s*',
+                          get_suggestion_list=self.get_autocompletion_data)
         return ac
 
     def autocomplete(self, reverse):
@@ -309,9 +335,11 @@ class IndexFrame(QtGui.QWidget):
                 return [suggestions[0] + ': ']
             else:
                 return suggestions
+        elif name == 'replace:attrname':
+            return [x for x in ['tags: '] if x.startswith(text)]
         elif name == 'filter:macros':
             return [x for x in sorted(self.settings['filter macros']) if x.startswith(text)]
-        elif name.startswith('filter:attr:') or name.startswith('edit:attr:'):
+        elif name.startswith('filter:attr:') or name.startswith('edit:attr:') or name.startswith('replace:attr:'):
             attribute = name.split(':', 2)[2]
             if attribute == 'tags':
                 data = (tag for entry in self.entrylist.entries.values()
@@ -392,6 +420,21 @@ class IndexFrame(QtGui.QWidget):
             return
         self.view.sort_entries(arg, self.entrylist.entries, reverse)
 
+    def replace_tags(self, oldtag, newtag):
+        if not oldtag and not newtag:
+            self.terminal.error('No tags specified')
+            return
+        selectedentries = set(self.entrylist.entries.keys()) - self.view.hiddenentries
+        if oldtag:
+            selectedentries = {id_ for id_ in selectedentries
+                               if oldtag in self.entrylist.entries[id_]['tags']}
+        newtagset = {newtag} if newtag else set()
+        actions = [(id_, 'tags', self.entrylist.entries[id_]['tags'] - {oldtag} | newtagset)
+                   for id_ in selectedentries]
+        self.entrylist.set_entry_values(actions)
+        for id_ in selectedentries:
+            self.view.set_entry_data(id_, self.entrylist.entries[id_])
+
     def edit_entry(self, arg):
         if arg.strip() == 'u':
             try:
@@ -401,6 +444,14 @@ class IndexFrame(QtGui.QWidget):
             else:
                 for entryid, data in actions:
                     self.view.set_entry_data(entryid, data)
+            return
+        replacerx = re.fullmatch(r'\*\s*tags:\s*([^,]*?)\s*,\s*([^,]*?)\s*', arg)
+        if replacerx:
+            self.replace_tags(*replacerx.groups())
+            return
+        replacerx2 = re.fullmatch(r'\*\s*(#[^,]+?)?\s*,\s*(#[^,]+?)?\s*', arg)
+        if replacerx2:
+            self.replace_tags(*[x[1:] for x in replacerx2.groups(' ')])
             return
         promptrx = re.fullmatch(r'(?P<num>\d+)\s*(?P<attrname>[^:]+)(:(?P<data>.*))?', arg)
         if promptrx is None:
