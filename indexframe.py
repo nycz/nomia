@@ -6,6 +6,8 @@ from os.path import join
 import re
 import webbrowser
 
+import requests
+
 from PyQt4 import QtWebKit, QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal, Qt, QEvent
 
@@ -17,7 +19,7 @@ from autocompletion import AutoCompleter
 from filtersystem import run_filter, match_tags
 from entryviewlib import HTMLEntryView, EntryList
 from entryfunctions import *
-
+import malapi
 
 class NomiaEntryList():
 
@@ -84,12 +86,17 @@ class NomiaEntryList():
         self.write_data(self.datapath)
         return updates
 
+    def add_entry(self, entrydata):
+        newentryid = str(max(int(x) for x in self.entries.keys())+1)
+        self.entries[newentryid] = entrydata
+        self.write_data(self.datapath)
 
 
 
 class NomiaHTMLEntryView(HTMLEntryView):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, imagepath, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.imagepath = imagepath
         self.expandedentries = set()
 
     def format_entry(self, n, id_, entry):
@@ -101,7 +108,7 @@ class NomiaHTMLEntryView(HTMLEntryView):
         def format_desc(desc):
             return desc if desc else '<span class="empty_desc">[no desc]</span>'
         def get_image(malindex):
-            return join(local_path('imgcache'), str(malindex) + '.jpg')
+            return join(self.imagepath, str(malindex) + '.jpg')
         def get_score(num):
             return num if num > 0 else '-'
         def format_duration(totalseconds):
@@ -201,7 +208,9 @@ class IndexFrame(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
         kill_theming(layout)
         self.entrylist = NomiaEntryList(dryrun)
-        self.view = NomiaHTMLEntryView(self, '#entry{}', '#hr{}', join(configdir, '.index.css'))
+        self.coverimagepath = join(configdir, 'coverimages')
+        self.view = NomiaHTMLEntryView(self.coverimagepath, self, '#entry{}', '#hr{}',
+                                       join(configdir, '.index.css'))
         self.view.templates = load_html_templates()
         layout.addWidget(self.view.webview, stretch=1)
         self.terminal = Terminal(self)
@@ -304,7 +313,7 @@ class IndexFrame(QtGui.QWidget):
             (t.sort,                    self.sort_entries),
             (t.toggle,                  self.toggle_entry_info),
             (t.edit,                    self.edit_entry),
-            ##(t.new_entry,               self.new_entry),
+            (t.new_entry,               self.new_entry),
             #(t.input_term.scroll_index, self.webview.event),
             #(t.list_,                   self.list_),
             #(t.quit,                    self.quit.emit),
@@ -519,6 +528,35 @@ class IndexFrame(QtGui.QWidget):
         self.entrylist.set_entry_value(entryid, attribute, parseddata)
         self.view.set_entry_data(entryid, self.entrylist.entries[entryid])
 
+    def new_entry(self, arg):
+        rx = re.fullmatch(r'(\d+)\s+(.+)', arg)
+        if rx is None:
+            self.terminal.error('Invalid new entry command')
+            nums = re.match(r'\d*', arg).group(0)
+            newmsg = ' '.join(['n', nums, '*****'])
+            self.terminal.censor_last_command(newmsg)
+            return
+        malid, pw = rx.groups()
+        self.terminal.censor_last_command(' '.join(['n', malid, '*****']))
+        malid = int(malid)
+        if malid in self.entrylist.entries:
+            self.terminal.error('The MAL id already exists')
+            return
+        auth = (self.settings['maluser'], pw)
+        url = 'http://myanimelist.net/api/animelist/add/{}.xml'.format(malid)
+        payload = {'data': malapi.build_anime_xml_data()}
+        response = requests.get(url, auth=auth, params=payload)
+        if response.status_code == 401:
+            self.terminal.error('Wrong username or password')
+            return
+        elif response.status_code != 201:
+            self.terminal.error('HTTP error code {}'.format(response.status_code))
+            return
+        newentry = malapi.get_mal_data(malid, self.settings['maluser'], self.coverimagepath)
+        self.entrylist.add_entry(newentry)
+        self.view.set_entries(self.entrylist.entries)
+        self.terminal.print_('Entry added: {}'.format(newentry['title']))
+
 
 # TERMINAL
 
@@ -564,11 +602,16 @@ class Terminal(GenericTerminal):
             'q': (self.quit, 'Quit'),
             '?': (self.cmd_help, 'List commands or help for [command]'),
             'l': (self.list_, 'List'),
-            #'n': (self.new_entry, 'New entry'),
+            'n': (self.new_entry, 'New entry'),
             'h': (self.cmd_show_readme, 'Show readme'),
             't': (self.test, 'DEVCOMMAND'),
             'w': (self.open_website, 'Open MAL page in browser')
         }
+
+    def censor_last_command(self, newtext):
+        self.history[-1] = newtext
+        timestamp, msgtype, oldmsg = self.log[-1]
+        self.log[-1] = (timestamp, msgtype, newtext)
 
     def cmd_show_readme(self, arg):
         self.show_readme.emit('', local_path('README.md'), None, 'markdown')
