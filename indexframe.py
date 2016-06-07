@@ -98,6 +98,7 @@ class NomiaHTMLEntryView(HTMLEntryView):
         super().__init__(*args, **kwargs)
         self.imagepath = imagepath
         self.expandedentries = set()
+        self.sortkey = 'title'
 
     def format_entry(self, n, id_, entry):
         def format_tags(tags):
