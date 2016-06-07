@@ -20,9 +20,9 @@ _xmltemplate = """\
     <rewatch_value></rewatch_value>
     <date_start>{datestart}</date_start>
     <date_finish>{datefinish}</date_finish>
-    <priority></priority>
-    <enable_discussion></enable_discussion>
-    <enable_rewatching></enable_rewatching>
+    <priority>0</priority>
+    <enable_discussion>0</enable_discussion>
+    <enable_rewatching>0</enable_rewatching>
     <comments></comments>
     <fansub_group></fansub_group>
     <tags></tags>
