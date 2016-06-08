@@ -16,7 +16,9 @@ _monthabbrs = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'o
 
 
 def match_string(arg, data):
-    return arg.lower().strip() in data.lower()
+    if not arg:
+        return data == ''
+    return arg.lower() in data.lower()
 
 def _get_comparison_function(arg, keepspaces=False):
     from operator import lt,gt,le,ge,eq
@@ -36,7 +38,7 @@ def match_int(arg, data):
 
 def match_score(arg, data):
     # Only show unscored entries when explicitly told to
-    if not arg.strip():
+    if not arg:
         return data == 0
     elif data == 0:
         return False
@@ -54,7 +56,7 @@ def match_space(arg, data):
     return op(data, int(float(rawnum) * _multipliers[rawunit]))
 
 def match_date(arg, data):
-    op, rest = _get_comparison_function(arg.lower().strip(), keepspaces=True)
+    op, rest = _get_comparison_function(arg.lower(), keepspaces=True)
     yearrx = re.fullmatch(r'(19|20)?(\d\d)', rest.strip())
     monthyearrx = re.fullmatch(r'(\w+)\s*(\d{4})', rest.strip())
     currentyear = date.today().year
